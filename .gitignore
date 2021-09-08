@@ -102,3 +102,10 @@ dist
 
 # TernJS port file
 .tern-port
+
+server.js
+test.js
+test.json
+test.py
+novel_spider.py
+novel_spider2.py
