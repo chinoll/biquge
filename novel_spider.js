@@ -3,14 +3,14 @@ const reuqest = require("request")
 axios.defaults.maxConcurrent = 10000
 axios.defaults.queueOptions.retry = 3
 const cheerio = require("cheerio")
-=const iconv = require('iconv-lite')
+const iconv = require('iconv-lite')
 const fs = require("fs")
 const { stringify } = require("querystring")
 const util = require("util")
 const base_url = "https://www.bqktxt.com"
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 const async = require("async")
-var util = require('util')
+// var util = require('util')
 function clear_html(html) {
     let s = /<br>/g;
     return html.slice(53,-176).replace(s,"\n")
