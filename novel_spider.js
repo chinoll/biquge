@@ -47,7 +47,7 @@ async function download_novel(url) {
         .then(async (response) => {
             let text = iconv.decode(response.data, 'gbk');
             let path = get_path(text)
-            console.log(path)
+            // console.log(path)
             $ = cheerio.load(text)
             x = $("body > div.listmain > dl > dd:nth-child(2)")
             let regex = new RegExp("<a href=\".*\.html\">");
@@ -74,7 +74,7 @@ async function download_novel(url) {
             }
             for(let index = 0;index < url_list.length;index++) {
                 try {
-                    console.log(index)
+                    // console.log(index)
                     let response = await axios({
                         method:'get',
                         url:url_list[index],
@@ -108,10 +108,10 @@ check_dir()
 
 for(let i = 1;i <= 70000;i++) {
     let id_list = []
-    for(let j = 0;j < 100;j++)
+    for(let j = 0;j < 10;j++)
         id_list.push(i + j)
-    async.mapLimit(id_list,100,async (index) => {
-        download_novel(util.format("https://www.bqktxt.com/0_%d",index))
+    async.mapLimit(id_list,10,async (index) => {
+        await download_novel(util.format("https://www.bqktxt.com/0_%d",index))
 
     },() => {})
 }
