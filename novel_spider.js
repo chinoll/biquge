@@ -1,6 +1,6 @@
 const axios = require("axios-extra")
 const reuqest = require("request")
-axios.defaults.maxConcurrent = 10000
+axios.defaults.maxConcurrent = 1000
 axios.defaults.queueOptions.retry = 3
 const cheerio = require("cheerio")
 const iconv = require('iconv-lite')
@@ -39,61 +39,56 @@ function get_path(html) {
     return path
 }
 async function download_novel(url) {
-    await axios({
+    let data = await axios({
         method:"get",
         url:url,
         responseType: "arraybuffer" 
         })
-        .then(async (response) => {
-            let text = iconv.decode(response.data, 'gbk');
-            let path = get_path(text)
-            // console.log(path)
-            $ = cheerio.load(text)
-            x = $("body > div.listmain > dl > dd:nth-child(2)")
-            let regex = new RegExp("<a href=\".*\.html\">");
-            let link = new RegExp("/.*\.html")
-            let start = new RegExp("正文卷")
-            let chapter_list = []
-            let text_list = []
-            let url_list = []
-            while (x.html() != null) {
-                let html = x.html()
-                if (start.test(html)) {
-                    x = x.next()
-                    break
-                }
-                x = x.next()
-            }
-            while(x.html() != null) {
-                    let html = x.html()
-                    let url = base_url + html.match(link)[0]
-                    html = html.replace(regex,"").slice(0,-4)
-                    url_list.push(url)
-                    chapter_list.push(html)
-                    x = x.next()
-            }
-            for(let index = 0;index < url_list.length;index++) {
-                try {
-                    // console.log(index)
-                    let response = await axios({
-                        method:'get',
-                        url:url_list[index],
-                        responseType:"arraybuffer",
-                        timeout:5000
-                    })
-                    let text = iconv.decode(response.data,"gbk");
-                    let $ = cheerio.load(text)
-                    let html = $("#content")
-                    text = chapter_list[index] + "\n\n" + clear_html(html.html())
-                    text_list.push(text)
-                } catch {
-                    console.log6("error")
-                }
-            }
-            fs.writeFile(path,JSON.stringify(text_list),()=>{console.log(path,"OK")})
-        }).catch((err) => {
-            console.log("error")
-        })
+
+    let text = iconv.decode(data.data, 'gbk');
+    let path = get_path(text)
+    $ = cheerio.load(text)
+    x = $("body > div.listmain > dl > dd:nth-child(2)")
+    let regex = new RegExp("<a href=\".*\.html\">");
+    let link = new RegExp("/.*\.html")
+    let start = new RegExp("正文卷")
+    let chapter_list = []
+    let text_list = []
+    let url_list = []
+    while (x.html() != null) {
+        let html = x.html()
+        if (start.test(html)) {
+            x = x.next()
+            break
+        }
+        x = x.next()
+    }
+    while(x.html() != null) {
+            let html = x.html()
+            let url = base_url + html.match(link)[0]
+            html = html.replace(regex,"").slice(0,-4)
+            url_list.push(url)
+            chapter_list.push(html)
+            x = x.next()
+    }
+    for(let index = 0;index < url_list.length;index++) {
+        try {
+            let response = await axios({
+                method:'get',
+                url:url_list[index],
+                responseType:"arraybuffer",
+                timeout:5000
+            })
+            let text = iconv.decode(response.data,"gbk");
+            let $ = cheerio.load(text)
+            let html = $("#content")
+            text = chapter_list[index] + "\n\n" + clear_html(html.html())
+            text_list.push(text)
+        } catch {
+            console.log6("error")
+        }
+    }
+    fs.writeFile(path,JSON.stringify(text_list),()=>{console.log(path,"OK")})
 }
 function check_dir() {
     let dir_list = ["xuanhuan/","hehuan/","chuanyue/","wangou/","dushi/","xiuzhen/","other/"]
@@ -105,13 +100,14 @@ function check_dir() {
     }
 }
 check_dir()
+async function download(concurrent) {
+    for(let i = 1;i <= 70000;i += concurrent) {
+        let id_list = []
+        for(let j = 0;j < concurrent;j++)
+            id_list.push(download_novel(util.format("https://www.bqktxt.com/0_%d",i + j)))
 
-for(let i = 1;i <= 70000;i++) {
-    let id_list = []
-    for(let j = 0;j < 10;j++)
-        id_list.push(i + j)
-    async.mapLimit(id_list,10,async (index) => {
-        await download_novel(util.format("https://www.bqktxt.com/0_%d",index))
-
-    },() => {})
+        await Promise.all(id_list).then((value) => {
+        })
+    }
 }
+download(1000)
