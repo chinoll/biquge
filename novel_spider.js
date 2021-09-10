@@ -1,19 +1,13 @@
-const axios = require("axios-extra")
-const reuqest = require("request")
-axios.defaults.maxConcurrent = 1000
-axios.defaults.queueOptions.retry = 3
+const axios = require("axios")
 const cheerio = require("cheerio")
 const iconv = require('iconv-lite')
 const fs = require("fs")
-const { stringify } = require("querystring")
 const util = require("util")
-const base_url = "https://www.bqktxt.com"
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
 const async = require("async")
-// var util = require('util')
+const base_url = "https://www.bqktxt.com"
 function clear_html(html) {
     let s = /<br>/g;
-    return html.slice(53,-176).replace(s,"\n")
+    return html.slice(53,-176).replace(s,"\n").replace(/&nbsp;/g," ")
 }
 function get_path(html) {
     $ = cheerio.load(html)
@@ -54,6 +48,7 @@ async function download_novel(url) {
     let start = new RegExp("正文卷")
     let chapter_list = []
     let text_list = []
+    let chapter_dict = {}
     let url_list = []
     while (x.html() != null) {
         let html = x.html()
@@ -69,26 +64,26 @@ async function download_novel(url) {
             html = html.replace(regex,"").slice(0,-4)
             url_list.push(url)
             chapter_list.push(html)
+            chapter_dict[url] = html
             x = x.next()
     }
-    for(let index = 0;index < url_list.length;index++) {
-        try {
+
+    async.mapLimit(url_list,100,async (url) => {
             let response = await axios({
                 method:'get',
-                url:url_list[index],
+                url:url,
                 responseType:"arraybuffer",
                 timeout:5000
             })
             let text = iconv.decode(response.data,"gbk");
             let $ = cheerio.load(text)
             let html = $("#content")
-            text = chapter_list[index] + "\n\n" + clear_html(html.html())
-            text_list.push(text)
-        } catch {
-            console.log6("error")
-        }
-    }
-    fs.writeFile(path,JSON.stringify(text_list),()=>{console.log(path,"OK")})
+            text = chapter_dict[url] + "\n\n" + clear_html(html.html())
+            return text
+    },(err,results) => {
+        fs.writeFile(path,JSON.stringify(results),()=>{console.log(path,"OK")})
+
+    })
 }
 function check_dir() {
     let dir_list = ["xuanhuan/","hehuan/","chuanyue/","wangou/","dushi/","xiuzhen/","other/"]
@@ -110,4 +105,4 @@ async function download(concurrent) {
         })
     }
 }
-download(1000)
+download(10)
