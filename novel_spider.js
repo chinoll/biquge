@@ -86,7 +86,7 @@ async function download_novel(url) {
     })
 }
 function check_dir() {
-    let dir_list = ["xuanhuan/","kehuan/","chuanyue/","wangou/","dushi/","xiuzhen/","other/"]
+    let dir_list = ["xuanhuan/","kehuan/","chuanyue/","wangyou/","dushi/","xiuzhen/","other/"]
     for(let i = 0;i < dir_list.length;i++) {
         fs.stat(dir_list[i],(err,stat)=>{
             if(err)
@@ -96,7 +96,7 @@ function check_dir() {
 }
 check_dir()
 async function download(concurrent) {
-    for(let i = 3612;i <= 70000;i += concurrent) {
+    for(let i = 3734;i <= 70000;i += concurrent) {
         let id_list = []
         for(let j = 0;j < concurrent;j++)
             id_list.push(download_novel(util.format("https://www.bqktxt.com/0_%d",i + j)))
