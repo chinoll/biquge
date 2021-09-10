@@ -68,7 +68,7 @@ async function download_novel(url) {
             x = x.next()
     }
 
-    async.mapLimit(url_list,100,async (url) => {
+    async.mapLimit(url_list,url_list.length,async (url) => {
             let response = await axios({
                 method:'get',
                 url:url,
@@ -96,7 +96,7 @@ function check_dir() {
 }
 check_dir()
 async function download(concurrent) {
-    for(let i = 1;i <= 70000;i += concurrent) {
+    for(let i = 3612;i <= 70000;i += concurrent) {
         let id_list = []
         for(let j = 0;j < concurrent;j++)
             id_list.push(download_novel(util.format("https://www.bqktxt.com/0_%d",i + j)))
@@ -105,4 +105,4 @@ async function download(concurrent) {
         })
     }
 }
-download(10)
+download(100)
