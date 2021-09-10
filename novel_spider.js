@@ -86,7 +86,7 @@ async function download_novel(url) {
     })
 }
 function check_dir() {
-    let dir_list = ["xuanhuan/","hehuan/","chuanyue/","wangou/","dushi/","xiuzhen/","other/"]
+    let dir_list = ["xuanhuan/","kehuan/","chuanyue/","wangou/","dushi/","xiuzhen/","other/"]
     for(let i = 0;i < dir_list.length;i++) {
         fs.stat(dir_list[i],(err,stat)=>{
             if(err)
